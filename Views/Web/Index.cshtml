@@ -1,0 +1,78 @@
+﻿<!doctype html>
+<script src="~/Scripts/jquery-3.1.1.min.js"></script>
+<head>
+
+    <script type="text/javascript">
+        var ws;
+
+        function $id() {
+            return document.getElementById(id);
+        }
+
+        function wireEvents(){
+            $('#send').on('click', function () {
+                var message = $('#message').val();
+                var Msg = '{"type":"Msgsay","ToUser":"ALL","Personal":"false","Style":"color:rgb(0, 0, 0)","Msg":"7a284b1b_+_asdf_+_"}';
+                ws.send(Msg);
+                $('#message').val('');
+            });
+
+            $('#close').on('click', function () {
+               // ws.close();
+                ws.send('{"type":"logout"}');
+            });
+        }
+
+        function createSpan(text) {
+            var span = document.createElement('span');
+            span.innerHTML = text + '<br/>';
+            return span;
+        };
+
+        window.onload = function () {
+            if (window.WebSocket) {
+                wireEvents();
+                var conversation = $('#conversation');
+                //var url = "ws://localhost:59958/WebSocket/WebSocketsServer2.ashx";
+                var url = "ws://103.212.99.218:8081/WebSocket/WebSocketsServer2.ashx";
+
+                ws = new WebSocket(url);
+                ws.onerror = function (e) {
+                    conversation.append(createSpan('伺服器連接失敗'));
+                };
+
+                ws.onopen = function (e) {
+                    var login_data = '{"type":"login","client_name":"游客634750","room_id":"1","chatid":"x634750","sex":"0","age":"0","qx":"0","ip":"127.0.0.1","vip":"17","color":"17","cam":"0","state":"0","mood":""}';
+
+                    ws.send(login_data);
+                };
+
+                ws.onmessage = function (e) {
+                    console.log(e.data);
+                    switch (e.data["type"])
+                    {
+                        case "login":
+                            conversation.append(createSpan("伺服器連接成功"));
+                            break;
+                        default:
+                            conversation.append(createSpan(e.data.toString()));
+                    }                   
+                };
+
+                ws.onclose = function (e) {
+                    //conversation.innerHTML = 'Closed connect!';
+                    ws.send('{"type":"logout"}');
+                };
+            }
+            else
+            {
+                alert("瀏覽器不支援聊天室功能，建議使用google、IE(版本10以上)。");
+            }
+        };
+
+    </script>
+</head>
+<input type="text" id="message" name="message"/>
+<button id="send" name="send">Send</button>
+<button id="close" name="close">Close</button><br />
+<div id="conversation" name="conversation" ></div>
